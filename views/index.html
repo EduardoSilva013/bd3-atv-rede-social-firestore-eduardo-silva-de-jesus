@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATIVIDADE - REDE SOCIAL</title>
+
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- jQuery e Socket.io importados por CDN: -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class="header_container">
+        <img src="/images/rede.png" />
+        <h1>ATIVIDADE - REDE SOCIAL</h1>
+    </div>
+
+    <div class="button_post_container">
+        <button name="btn_post" id="btn_post">POST</button>
+    </div>
+
+    <div class="posts_container"></div>
+
+    <!-- ESTRUTURA HTML DO FORMULÁRIO MODAL: -->
+    <div id="myModal" class="modal">
+
+        <div class="modal-content">
+
+            <span class="close">&times;</span>
+
+            <div class="form_post_container">
+
+                <h4>FAÇA UM POST</h4>
+
+                <form name="frm_post" id="frm_post">
+
+                    <input type="text" name="txt_titulo" id="txt_titulo" placeholder="TITULO DO POST" maxlength="100">
+                    <br />
+                    <input type="text" name="txt_post" id="txt_post" placeholder="TEXTO DO POST" maxlength="1000">
+                    <br />
+                    <button name="btn_postar" id="btn_postar">POSTAR</button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+<script>
+
+    /***** ABERTURA/FECHAMENTO DO FORMUÁRIO MODAL *****/
+    let btn = document.getElementById('btn_post');
+    let modal = document.getElementById("myModal");
+    let span = document.getElementsByClassName("close")[0];
+
+    //ABRE O FORMULÁRIO MODAL:
+    btn.addEventListener('click', function (event) {
+        event.preventDefault();
+        modal.style.display = "block";
+    });
+
+    //FECHA O FORMULÁRIO MODAL:
+    span.addEventListener('click', function (event) {
+        modal.style.display = "none";
+    });
+
+
+    /***** SOCKET.IO - CONEXÃO COM O BACK-END *****/
+    // Sem parâmetro, o socket.io conecta no mesmo servidor que entregou esta página (o back-end):
+    const socket = io();
+
+    // Formata a data (em milissegundos) como no layout: [18/4/2025 - 18:45:12]
+    function formatarData(milissegundos) {
+        const d = new Date(milissegundos);
+        const dois = (n) => String(n).padStart(2, '0');
+
+        return `[${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} - ` +
+               `${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}]`;
+    }
+
+    // Função que renderiza UM post na tela.
+    // Usa .text() (e não .html()) para o texto digitado nunca ser executado como HTML.
+    function renderPost(post) {
+        const $post = $('<div class="post_container"></div>');
+
+        $post.append($('<span></span>').text(post.titulo));
+        $post.append($('<p></p>').text(post.texto));
+        $post.append($('<span></span>').text(formatarData(post.data)));
+
+        $('.posts_container').append($post);
+    }
+
+    // previousMessage: o back-end envia todos os posts já cadastrados ao conectar
+    socket.on('previousMessage', function (posts) {
+        $('.posts_container').empty(); // evita duplicar posts se o socket reconectar
+        posts.forEach(renderPost);
+    });
+
+    // receivedMessage: chegou um post novo (de qualquer usuário) em tempo real
+    socket.on('receivedMessage', function (post) {
+        renderPost(post);
+    });
+
+    // Mensagens de erro vindas do back-end:
+    socket.on('erro', function (mensagem) {
+        alert(mensagem);
+    });
+
+    // Envio de posts pelo formulário (sendMessage):
+    $('#frm_post').on('submit', function (event) {
+        event.preventDefault();
+
+        const titulo = $('#txt_titulo').val().trim();
+        const texto = $('#txt_post').val().trim();
+
+        if (!titulo || !texto) {
+            alert('Preencha o título e o texto do post.');
+            return;
+        }
+
+        socket.emit('sendMessage', { titulo: titulo, texto: texto });
+
+        $('#frm_post')[0].reset();
+        modal.style.display = "none";
+    });
+
+</script>
+
+</html>

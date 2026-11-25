@@ -1,0 +1,23 @@
+{
+  "name": "bd3-atv-rede-social-firestore-eduardo-silva-de-jesus",
+  "version": "1.0.0",
+  "description": "BD3 - Protótipo de rede social com Node.js, Express, Socket.io e MongoDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "Eduardo Silva de Jesus",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.10",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "mongoose": "^9.13.0",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
